@@ -18,6 +18,8 @@ import { I80F48, ONE_I80F48 } from './fixednum';
 import MangoGroup from './MangoGroup';
 import { HealthType } from './MangoAccount';
 
+export const isLogPrinting = false;
+
 /** @internal */
 export const ZERO_BN = new BN(0);
 
@@ -170,7 +172,7 @@ export async function awaitTransactionSignatureConfirmation(
               ) {
                 console.log('REST not confirmed', txid, result);
               } else {
-                console.log('REST confirmed', txid, result);
+                print(isLogPrinting, 'REST confirmed', txid, result);
                 done = true;
                 resolve(result);
               }
@@ -377,4 +379,10 @@ export function throwUndefined<T>(x: T | undefined): T {
     throw new Error('Undefined');
   }
   return x;
+}
+
+export function print(print=isLogPrinting, ...args) {
+  if (print) {
+    console.log(...args);
+  }
 }

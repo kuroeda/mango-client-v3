@@ -25,6 +25,8 @@ import {
   uiToNative,
   zeroKey,
   ZERO_BN,
+  print,
+  isLogPrinting
 } from './utils';
 import {
   AssetType,
@@ -229,11 +231,11 @@ export class MangoClient {
       { skipPreflight: true },
     );
 
-    console.log(
+    print(isLogPrinting,
       'Started awaiting confirmation for',
       txid,
       'size:',
-      rawTransaction.length,
+      rawTransaction.length
     );
 
     let done = false;
@@ -241,7 +243,7 @@ export class MangoClient {
       // TODO - make sure this works well on mainnet
       await sleep(1000);
       while (!done && getUnixTs() - startTime < timeout / 1000) {
-        console.log(new Date().toUTCString(), ' sending tx ', txid);
+        print(isLogPrinting, new Date().toUTCString(), ' sending tx ', txid);
         this.connection.sendRawTransaction(rawTransaction, {
           skipPreflight: true,
         });
@@ -256,7 +258,7 @@ export class MangoClient {
         this.connection,
         confirmLevel,
       );
-    } catch (err) {
+    } catch (err: any) {
       if (err.timeout) {
         throw new Error('Timed out awaiting confirmation on transaction');
       }
@@ -329,7 +331,7 @@ export class MangoClient {
         this.connection,
         confirmLevel,
       );
-    } catch (err) {
+    } catch (err: any) {
       if (err.timeout) {
         throw new Error('Timed out awaiting confirmation on transaction');
       }

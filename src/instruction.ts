@@ -11,6 +11,8 @@ import { Order } from '@project-serum/serum/lib/market';
 import { I80F48, ZERO_I80F48 } from './fixednum';
 import { PerpOrder, PerpOrderType, ZERO_BN } from '.';
 
+import { print, isLogPrinting } from './utils';
+
 export function makeInitMangoGroupInstruction(
   programId: PublicKey,
   mangoGroupPk: PublicKey,
@@ -235,7 +237,7 @@ export function makeCancelPerpOrderInstruction(
     },
   });
 
-  console.log(order, order.orderId.toArray(), data);
+  print(isLogPrinting, order, order.orderId.toArray(), data);
 
   return new TransactionInstruction({ keys, data, programId });
 }
