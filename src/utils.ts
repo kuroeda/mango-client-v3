@@ -378,3 +378,9 @@ export function throwUndefined<T>(x: T | undefined): T {
   }
   return x;
 }
+
+export function print (isPrinting = false, ...args) {
+  if (isPrinting) {
+    console.log(...args);
+  }
+}

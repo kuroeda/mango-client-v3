@@ -25,6 +25,7 @@ import {
   uiToNative,
   zeroKey,
   ZERO_BN,
+  print
 } from './utils';
 import {
   AssetType,
@@ -123,10 +124,12 @@ export const getUnixTs = () => {
 export class MangoClient {
   connection: Connection;
   programId: PublicKey;
+  isPrintingTxMsg: boolean;
 
   constructor(connection: Connection, programId: PublicKey) {
     this.connection = connection;
     this.programId = programId;
+    this.isPrintingTxMsg = false;
   }
 
   async sendTransactions(
@@ -229,11 +232,12 @@ export class MangoClient {
       { skipPreflight: true },
     );
 
-    console.log(
+    print(
+      this.isPrintingTxMsg,
       'Started awaiting confirmation for',
       txid,
       'size:',
-      rawTransaction.length,
+      rawTransaction.length
     );
 
     let done = false;
@@ -241,7 +245,7 @@ export class MangoClient {
       // TODO - make sure this works well on mainnet
       await sleep(1000);
       while (!done && getUnixTs() - startTime < timeout / 1000) {
-        console.log(new Date().toUTCString(), ' sending tx ', txid);
+        print(this.isPrintingTxMsg, new Date().toUTCString(), ' sending tx ', txid);
         this.connection.sendRawTransaction(rawTransaction, {
           skipPreflight: true,
         });
