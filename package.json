@@ -1,6 +1,6 @@
 {
   "name": "@blockworks-foundation/mango-client",
-  "version": "3.2.7",
+  "version": "3.2.13",
   "description": "Client to interact with the Mango program on Solana",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -18,6 +18,7 @@
     "build": "tsc",
     "build-docs": "yarn typedoc src/index.ts",
     "cli": "ts-node src/cli.ts",
+    "checkMarginBaskets": "ts-node src/checkMarginBaskets.ts",
     "liquidator": "ts-node src/liquidator.ts",
     "launch-group": "ts-node test/initDevnetGroup.ts",
     "launch-realistic-group": "ts-node test/initRealisticDevnetGroup.ts",
@@ -82,8 +83,10 @@
     "bigint-buffer": "^1.1.5",
     "bn.js": "^5.2.0",
     "buffer-layout": "^1.2.1",
+    "cross-fetch": "^3.1.4",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "encoding": "^0.1.13",
     "yargs": "^17.0.1"
   },
   "browserslist": [
