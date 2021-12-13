@@ -112,6 +112,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import MangoGroup from './MangoGroup';
+import { TimeoutError } from '.';
 
 export const getUnixTs = () => {
   return new Date().getTime() / 1000;
@@ -203,11 +204,20 @@ export class MangoClient {
   }
 
   // TODO - switch Account to Keypair and switch off setSigners due to deprecated
+  /**
+   * Send a transaction using the Solana Web3.js connection on the mango client
+   *
+   * @param transaction
+   * @param payer
+   * @param additionalSigners
+   * @param timeout Retries sending the transaction and trying to confirm it until the given timeout. Defaults to 30000ms. Passing null will disable the transaction confirmation check and always return success.
+   * @param postSignTxCallback Callback to be called after the transaction is signed but before it's sent.
+   */
   async sendTransaction(
     transaction: Transaction,
     payer: Account | WalletAdapter | Keypair,
     additionalSigners: Account[],
-    timeout = 30000,
+    timeout: number | null = 30000,
     confirmLevel: TransactionConfirmationStatus = 'processed',
     postSignTxCallback?: any,
   ): Promise<TransactionSignature> {
@@ -231,6 +241,8 @@ export class MangoClient {
       { skipPreflight: true },
     );
 
+    if (!timeout) return txid;
+
     print(isLogPrinting,
       'Started awaiting confirmation for',
       txid,
@@ -239,15 +251,19 @@ export class MangoClient {
     );
 
     let done = false;
+
+    let retrySleep = 1500;
     (async () => {
       // TODO - make sure this works well on mainnet
-      await sleep(2000);
       while (!done && getUnixTs() - startTime < timeout / 1000) {
+        await sleep(retrySleep);
         // console.log(new Date().toUTCString(), ' sending tx ', txid);
         this.connection.sendRawTransaction(rawTransaction, {
           skipPreflight: true,
         });
-        await sleep(2000);
+        if (retrySleep <= 6000) {
+          retrySleep = retrySleep * 2;
+        }
       }
     })();
 
@@ -259,7 +275,7 @@ export class MangoClient {
       );
     } catch (err: any) {
       if (err.timeout) {
-        throw err;
+        throw new TimeoutError({ txid });
       }
       let simulateResult: SimulatedTransactionResponse | null = null;
       try {
@@ -288,7 +304,7 @@ export class MangoClient {
       done = true;
     }
 
-    // console.log('Latency', txid, getUnixTs() - startTime);
+    console.log('Latency', txid, getUnixTs() - startTime);
     return txid;
   }
 
@@ -414,8 +430,10 @@ export class MangoClient {
           done = true;
           console.log('WS error in setup', txid, e);
         }
+        let retrySleep = 200;
         while (!done) {
           // eslint-disable-next-line no-loop-func
+          await sleep(retrySleep);
           (async () => {
             try {
               const response = await this.connection.getSignatureStatuses([
@@ -450,19 +468,17 @@ export class MangoClient {
               }
             }
           })();
-          await sleep(300);
+          if (retrySleep <= 1600) {
+            retrySleep = retrySleep * 2;
+          }
         }
       })();
     });
 
     if (subscriptionId) {
-      try {
-        console.log('Cancelling subscription', subscriptionId);
-
-        this.connection.removeSignatureListener(subscriptionId);
-      } catch (e) {
+      this.connection.removeSignatureListener(subscriptionId).catch((e) => {
         console.log('WS error in cleanup', e);
-      }
+      });
     }
 
     done = true;
@@ -1086,7 +1102,7 @@ export class MangoClient {
     const transaction = new Transaction();
     transaction.add(consumeEventsInstruction);
 
-    return await this.sendTransaction(transaction, payer, []);
+    return await this.sendTransaction(transaction, payer, [], null);
   }
 
   /**
