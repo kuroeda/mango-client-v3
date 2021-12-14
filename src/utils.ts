@@ -138,7 +138,7 @@ export async function awaitTransactionSignatureConfirmation(
           return;
         }
         done = true;
-        console.log('Timed out for txid', txid);
+        print(isLogPrinting, 'Timed out for txid', txid);
         reject({ timeout: true });
       }, timeout);
       try {

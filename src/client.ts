@@ -304,7 +304,7 @@ export class MangoClient {
       done = true;
     }
 
-    console.log('Latency', txid, getUnixTs() - startTime);
+    print(isLogPrinting, 'Latency', txid, getUnixTs() - startTime);
     return txid;
   }
 
@@ -408,7 +408,7 @@ export class MangoClient {
             return;
           }
           done = true;
-          console.log('Timed out for txid: ', txid);
+          print(isLogPrinting, 'Timed out for txid: ', txid);
           reject({ timeout: true });
         }, timeout);
         try {
@@ -457,7 +457,7 @@ export class MangoClient {
                   console.log('REST not confirmed', txid, result);
                 } else {
                   this.lastSlot = response?.context?.slot;
-                  console.log('REST confirmed', txid, result);
+                  print(isLogPrinting, 'REST confirmed', txid, result);
                   done = true;
                   resolve(result);
                 }
