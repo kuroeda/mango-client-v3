@@ -67,6 +67,8 @@ export default class MangoAccount {
   advancedOrdersKey!: PublicKey;
   advancedOrders: { perpTrigger?: PerpTriggerOrder }[];
 
+  lastAccountSlot: number = 0;
+
   constructor(publicKey: PublicKey, decoded: any) {
     this.publicKey = publicKey;
     this.spotOpenOrdersAccounts = new Array(MAX_PAIRS).fill(undefined);
@@ -139,12 +141,18 @@ export default class MangoAccount {
   hasAnySpotOrders(): boolean {
     return this.inMarginBasket.some((b) => b);
   }
+
   async reload(
     connection: Connection,
     dexProgramId: PublicKey | undefined = undefined,
   ): Promise<MangoAccount> {
-    const acc = await connection.getAccountInfo(this.publicKey);
-    Object.assign(this, MangoAccountLayout.decode(acc?.data));
+    const acc = await connection.getAccountInfoAndContext(this.publicKey);
+    const slot = acc?.context?.slot;
+    if (this.lastAccountSlot && this.lastAccountSlot > slot) {
+      throw new Error('Slot for account is too old.');
+    }
+    this.lastAccountSlot = slot;
+    Object.assign(this, MangoAccountLayout.decode(acc?.value?.data));
     if (dexProgramId) {
       await this.loadOpenOrders(connection, dexProgramId);
     }

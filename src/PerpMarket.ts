@@ -58,6 +58,9 @@ export default class PerpMarket {
 
   mngoVault!: PublicKey;
 
+  lastBidSlot: number = 0;
+  lastAskSlot: number = 0;
+
   constructor(
     publicKey: PublicKey,
     baseDecimals: number,
@@ -167,21 +170,31 @@ export default class PerpMarket {
   }
 
   async loadBids(connection: Connection): Promise<BookSide> {
-    const acc = await connection.getAccountInfo(this.bids);
+    const acc = await connection.getAccountInfoAndContext(this.bids);
+    const slot = acc?.context?.slot;
+    if (this.lastBidSlot && this.lastBidSlot > slot) {
+      throw new Error('Slot for Bids is too old.');
+    }
+    this.lastBidSlot = slot;
     const book = new BookSide(
       this.bids,
       this,
-      BookSideLayout.decode(acc?.data),
+      BookSideLayout.decode(acc?.value?.data),
     );
     return book;
   }
 
   async loadAsks(connection: Connection): Promise<BookSide> {
-    const acc = await connection.getAccountInfo(this.asks);
+    const acc = await connection.getAccountInfoAndContext(this.asks);
+    const slot = acc?.context?.slot;
+    if (this.lastAskSlot && this.lastAskSlot > slot) {
+      throw new Error('Slot for Asks is too old.');
+    }
+    this.lastAskSlot = slot;
     const book = new BookSide(
       this.asks,
       this,
-      BookSideLayout.decode(acc?.data),
+      BookSideLayout.decode(acc?.value?.data),
     );
     return book;
   }
