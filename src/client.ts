@@ -308,13 +308,6 @@ export class MangoClient {
     timeout = this.timeout || timeout;
     if (!timeout) return txid;
 
-    console.log(
-      'Started awaiting confirmation for',
-      txid,
-      'size:',
-      rawTransaction.length,
-    );
-
     let done = false;
 
     let retrySleep = 15000;
@@ -374,7 +367,6 @@ export class MangoClient {
       done = true;
     }
 
-    console.log('Latency', txid, getUnixTs() - startTime);
     return txid;
   }
 
@@ -4592,7 +4584,6 @@ export class MangoClient {
         const txid = await this.sendSignedTransaction({
           signedTransaction,
         });
-        console.log(txid);
       }
     } else {
       throw new Error('Unable to sign ResolveDust transactions');
@@ -4860,7 +4851,6 @@ export class MangoClient {
           signedTransaction,
         });
         txids.push(txid);
-        console.log(txid);
       }
     } else {
       throw new Error('Unable to sign emptyAndCloseMangoAccount transactions');

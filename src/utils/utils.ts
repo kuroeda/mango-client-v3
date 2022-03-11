@@ -206,7 +206,6 @@ export async function awaitTransactionSignatureConfirmation(
               ) {
                 console.log('REST not confirmed', txid, result);
               } else {
-                console.log('REST confirmed', txid, result);
                 done = true;
                 resolve(result);
               }
